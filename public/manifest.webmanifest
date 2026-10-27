@@ -3,27 +3,27 @@
   "short_name": "Mi Rutina",
   "description": "Seguimiento personal de entrenamiento Upper/Lower, cálculo de cargas RM y evolución en el gimnasio.",
   "lang": "es",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#fdf8fa",
   "theme_color": "#be185d",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/icon-192.svg",
+      "src": "./icon-192.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.svg",
+      "src": "./icon-512.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
