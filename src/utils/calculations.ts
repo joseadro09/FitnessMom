@@ -276,7 +276,7 @@ export function generateInitialSetsForExercise(
   if (exercise.category === 'cardio') {
     return [
       {
-        id: `${sessionId}_${exercise.id}_cardio_1`,
+        id: `${sessionId}_${exercise.id}_effective_1`,
         sessionId,
         exerciseId: exercise.id,
         setType: 'effective',
@@ -309,12 +309,13 @@ export function generateInitialSetsForExercise(
   let setNumber = 1;
 
   for (let i = 1; i <= warmupCount; i++) {
+    const currentSetNum = setNumber++;
     sets.push({
-      id: `${sessionId}_${exercise.id}_warmup_${i}`,
+      id: `${sessionId}_${exercise.id}_warmup_${currentSetNum}`,
       sessionId,
       exerciseId: exercise.id,
       setType: 'warmup',
-      setNumber: setNumber++,
+      setNumber: currentSetNum,
       typeIndex: i,
       suggestedLoad: loads.warmupLoad,
       actualLoad: loads.warmupLoad,
@@ -329,16 +330,17 @@ export function generateInitialSetsForExercise(
   }
 
   for (let i = 1; i <= approachCount; i++) {
+    const currentSetNum = setNumber++;
     const suggested =
       i === 1
         ? loads.approachLoad
         : loads.secondApproachLoad ?? loads.approachLoad;
     sets.push({
-      id: `${sessionId}_${exercise.id}_approach_${i}`,
+      id: `${sessionId}_${exercise.id}_approach_${currentSetNum}`,
       sessionId,
       exerciseId: exercise.id,
       setType: 'approach',
-      setNumber: setNumber++,
+      setNumber: currentSetNum,
       typeIndex: i,
       suggestedLoad: suggested,
       actualLoad: suggested,
@@ -353,12 +355,13 @@ export function generateInitialSetsForExercise(
   }
 
   for (let i = 1; i <= effectiveCount; i++) {
+    const currentSetNum = setNumber++;
     sets.push({
-      id: `${sessionId}_${exercise.id}_effective_${i}`,
+      id: `${sessionId}_${exercise.id}_effective_${currentSetNum}`,
       sessionId,
       exerciseId: exercise.id,
       setType: 'effective',
-      setNumber: setNumber++,
+      setNumber: currentSetNum,
       typeIndex: i,
       suggestedLoad: loads.effectiveLoad,
       actualLoad: loads.effectiveLoad,

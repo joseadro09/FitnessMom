@@ -14,6 +14,7 @@ import {
 } from '../utils/calculations';
 import {
   createBackupData,
+  deduplicateSetLogs,
   loadInitialDatabase,
   validateBackupJson,
   writeFullSnapshotToDB,
@@ -173,5 +174,40 @@ describe('Validaciones de Rutinas, Cálculo de RM y Persistencia', () => {
     expect(
       extractYouTubeVideoId('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
     ).toBe('dQw4w9WgXcQ');
+  });
+
+  it('8. Registrar series de aproximación o efectivas usa el mismo ID con setNumber y no duplica series', () => {
+    const pressPecho = {
+      ...INITIAL_EXERCISES.find((e) => e.id === 'press-pecho-maquina')!,
+      estimated1RM: 60,
+    };
+    const lunesItem = INITIAL_TEMPLATES[0].exercises[3];
+
+    const sets = generateInitialSetsForExercise(
+      'sess_lunes',
+      pressPecho,
+      lunesItem,
+      DEFAULT_SETTINGS
+    );
+
+    expect(sets[0].id).toBe('sess_lunes_press-pecho-maquina_warmup_1');
+    expect(sets[1].id).toBe('sess_lunes_press-pecho-maquina_approach_2');
+    expect(sets[2].id).toBe('sess_lunes_press-pecho-maquina_effective_3');
+    expect(sets[3].id).toBe('sess_lunes_press-pecho-maquina_effective_4');
+
+    // Simular limpieza de duplicados previos con el mismo setNumber
+    const duplicated = [
+      sets[1],
+      {
+        ...sets[1],
+        id: 'sess_lunes_press-pecho-maquina_approach_1',
+        status: 'completed' as const,
+        completedAt: '2026-10-28T23:05:00Z',
+      },
+    ];
+    const cleaned = deduplicateSetLogs(duplicated);
+    expect(cleaned).toHaveLength(1);
+    expect(cleaned[0].status).toBe('completed');
+    expect(cleaned[0].id).toBe('sess_lunes_press-pecho-maquina_approach_2');
   });
 });

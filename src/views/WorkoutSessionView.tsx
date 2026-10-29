@@ -391,7 +391,7 @@ export const WorkoutSessionView: React.FC<WorkoutSessionViewProps> = ({
         : loads.targetReps;
 
     const newSet: SetLog = {
-      id: `${activeSess.id}_${exercise.id}_${setType}_${Date.now()}`,
+      id: `${activeSess.id}_${exercise.id}_${setType}_${nextSetNumber}`,
       sessionId: activeSess.id,
       exerciseId: exercise.id,
       setType,

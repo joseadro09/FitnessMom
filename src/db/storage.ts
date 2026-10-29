@@ -24,6 +24,35 @@ export interface AppDatabaseSnapshot {
   settings: Settings;
 }
 
+/**
+ * Elimina posibles duplicados históricos en setLogs que compartan
+ * (sessionId, exerciseId, setNumber), conservando el registro completado
+ * o más reciente y normalizando su id.
+ */
+export function deduplicateSetLogs(logs: SetLog[]): SetLog[] {
+  const byKey = new Map<string, SetLog>();
+  for (const log of logs) {
+    const key = `${log.sessionId}::${log.exerciseId}::${log.setNumber}`;
+    const canonicalId = `${log.sessionId}_${log.exerciseId}_${log.setType}_${log.setNumber}`;
+    const normalized: SetLog = { ...log, id: canonicalId };
+    const existing = byKey.get(key);
+    if (!existing) {
+      byKey.set(key, normalized);
+    } else if (
+      normalized.status === 'completed' &&
+      existing.status !== 'completed'
+    ) {
+      byKey.set(key, normalized);
+    } else if (
+      normalized.status === existing.status &&
+      (normalized.completedAt || '') >= (existing.completedAt || '')
+    ) {
+      byKey.set(key, normalized);
+    }
+  }
+  return Array.from(byKey.values());
+}
+
 function openIDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     if (typeof indexedDB === 'undefined') {
@@ -184,7 +213,7 @@ export async function loadInitialDatabase(): Promise<AppDatabaseSnapshot> {
         exercises,
         templates,
         sessions,
-        setLogs,
+        setLogs: deduplicateSetLogs(setLogs),
         settings,
       };
       saveSnapshotToLocalStorage(snapshot);
@@ -196,6 +225,7 @@ export async function loadInitialDatabase(): Promise<AppDatabaseSnapshot> {
 
   const fromLS = loadSnapshotFromLocalStorage();
   if (fromLS && fromLS.exercises.length > 0 && fromLS.templates.length > 0) {
+    fromLS.setLogs = deduplicateSetLogs(fromLS.setLogs || []);
     await writeFullSnapshotToDB(fromLS);
     return fromLS;
   }

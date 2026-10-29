@@ -180,7 +180,7 @@ export const App: React.FC = () => {
 
     const nowIso = new Date().toISOString();
     const newSession: WorkoutSession = {
-      id: `sess_${selectedTemplate.id}_${selectedDateISO}_${Date.now()}`,
+      id: `sess_${selectedTemplate.id}_${selectedDateISO}`,
       date: selectedDateISO,
       weekStartDate: currentWeekMonday,
       templateId: selectedTemplate.id,
@@ -192,14 +192,23 @@ export const App: React.FC = () => {
       exerciseStates: {},
     };
 
-    setSessions((prev) => [newSession, ...prev]);
+    setSessions((prev) => {
+      if (prev.some((s) => s.id === newSession.id)) return prev;
+      return [newSession, ...prev];
+    });
     return newSession;
   };
 
   // Insertar o actualizar un registro de serie sin crear duplicados
   const handleUpsertSetLog = (log: SetLog, undoDescription?: string) => {
     setSetLogs((prev) => {
-      const existingIndex = prev.findIndex((item) => item.id === log.id);
+      const existingIndex = prev.findIndex(
+        (item) =>
+          item.id === log.id ||
+          (item.sessionId === log.sessionId &&
+            item.exerciseId === log.exerciseId &&
+            item.setNumber === log.setNumber)
+      );
       const previousSetLog: SetLog =
         existingIndex >= 0
           ? prev[existingIndex]
@@ -240,7 +249,13 @@ export const App: React.FC = () => {
     const prevLog = latestUndo.previousSetLog;
 
     setSetLogs((prev) => {
-      const idx = prev.findIndex((l) => l.id === prevLog.id);
+      const idx = prev.findIndex(
+        (l) =>
+          l.id === prevLog.id ||
+          (l.sessionId === prevLog.sessionId &&
+            l.exerciseId === prevLog.exerciseId &&
+            l.setNumber === prevLog.setNumber)
+      );
       if (idx >= 0) {
         const copy = [...prev];
         copy[idx] = prevLog;
