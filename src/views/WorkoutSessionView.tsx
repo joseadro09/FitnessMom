@@ -226,6 +226,18 @@ export const WorkoutSessionView: React.FC<WorkoutSessionViewProps> = ({
     const isCompleting = currentSet.status !== 'completed';
     const nowIso = new Date().toISOString();
 
+    if (
+      isCompleting &&
+      typeof navigator !== 'undefined' &&
+      'vibrate' in navigator
+    ) {
+      try {
+        navigator.vibrate(15);
+      } catch {
+        // Ignore if unsupported
+      }
+    }
+
     let actualLoad: number | null =
       targetSet.actualLoad ?? currentSet.suggestedLoad;
     let actualReps: number | null =
@@ -957,11 +969,19 @@ export const WorkoutSessionView: React.FC<WorkoutSessionViewProps> = ({
 
                       {/* Lista de Series */}
                       <div className="sets-list">
-                        {sets.map((s) => {
-                          const isCompleted = s.status === 'completed';
-                          const stepInc =
-                            exercise.equipmentIncrement ||
-                            settings.defaultIncrement;
+                        {(() => {
+                          const firstPendingSetNumber = sets.find(
+                            (st) => st.status !== 'completed'
+                          )?.setNumber;
+
+                          return sets.map((s) => {
+                            const isCompleted = s.status === 'completed';
+                            const isNextUp =
+                              !isCompleted &&
+                              s.setNumber === firstPendingSetNumber;
+                            const stepInc =
+                              exercise.equipmentIncrement ||
+                              settings.defaultIncrement;
 
                           if (exercise.category === 'cardio') {
                             return (
@@ -1103,13 +1123,18 @@ export const WorkoutSessionView: React.FC<WorkoutSessionViewProps> = ({
                               key={s.id}
                               className={`set-row-card type-${s.setType} ${
                                 isCompleted ? 'completed' : 'pending'
-                              }`}
+                              } ${isNextUp ? 'is-next-up' : ''}`}
                             >
                               <div className="set-row-top">
                                 <div className="set-badges-left">
                                   <span className={`set-badge ${s.setType}`}>
                                     Serie #{s.setNumber} • {typeLabel}
                                   </span>
+                                  {isNextUp && (
+                                    <span className="next-set-pill">
+                                      Siguiente
+                                    </span>
+                                  )}
                                   <span className="set-suggested-hint">
                                     {s.suggestedLoad !== null
                                       ? `Sugerido: ${s.suggestedLoad} kg × ${s.targetRepsLabel}`
@@ -1357,7 +1382,8 @@ export const WorkoutSessionView: React.FC<WorkoutSessionViewProps> = ({
                               </div>
                             </div>
                           );
-                        })}
+                        });
+                        })()}
                       </div>
 
                       {/* Controles para añadir series de preparación o efectivas */}
